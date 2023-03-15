@@ -1,0 +1,15 @@
+package cms.front.main.service;
+
+import cms.cmn.model.ZValue;
+
+public interface MainService {
+
+	// 사용자 정보 등록/수정
+	void saveMemberInfo(ZValue zvl) throws Exception;
+
+	int emailCheck(ZValue zvl) throws Exception;
+
+	// 사용자 정보 삭제
+//	void deleteMemberInfo(ZValue zvl) throws Exception;
+
+}

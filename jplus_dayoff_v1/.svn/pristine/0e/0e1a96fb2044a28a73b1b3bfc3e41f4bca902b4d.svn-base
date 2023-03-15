@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="contents">
+
+	<select id="selectContentsListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_CONTENTS C
+			<where>
+				<if test='schGb != null and schGb == "contentsNm" and schVal != null and schVal != ""'>
+					AND UPPER(REPLACE(CONTENTS_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_CONTENTS C
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectContentsList" parameterType="zvl" resultType="zvl">
+		SELECT
+			CONTENTS_SEQ
+			, CONTENTS_NM
+			, CONTENTS_GB
+			, CONTENTS
+			, USE_YN
+			, (
+				SELECT
+					GROUP_CONCAT(MENU_NM)
+				FROM
+					TB_MENU M
+				WHERE
+					M.CONTENTS_SEQ = C.CONTENTS_SEQ
+			) AS MENU_LIST
+			, C.CREATE_BY
+			, DATE_FORMAT(C.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, C.LAST_UPDATE_BY
+			, DATE_FORMAT(C.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_CONTENTS C
+		<where>
+			<if test='schGb != null and schGb == "contentsNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(CONTENTS_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			C.CONTENTS_SEQ DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectContentsInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			C.CONTENTS_SEQ
+			, C.CONTENTS_NM
+			, C.CONTENTS_GB
+			, C.CONTENTS
+			, C.CUST_ITEM
+			, C.USE_YN
+			, F.FILE_SEQ AS CONTENTS_FILE_SEQ
+			, F.FILE_NM AS CONTENTS_FILE_NM
+			, F.SYSTEM_FILE_NM AS CONTENTS_SYSTEM_FILE_NM
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS CONTENTS_SYSTEM_FILE_PATH_NM
+			, C.CREATE_BY
+			, DATE_FORMAT(C.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, C.LAST_UPDATE_BY
+			, DATE_FORMAT(C.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_CONTENTS C
+			LEFT JOIN TB_FILE F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'CONTENTS'
+					AND F.FILE_ITEM = 'contentsFile'
+					AND F.P_SEQ = C.CONTENTS_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		<where>
+			C.CONTENTS_SEQ = #{contentsSeq}
+		</where>
+	</select>
+
+	<select id="selectContentsImgList" parameterType="zvl" resultType="zvl">
+		SELECT
+			FILE_SEQ
+			, FILE_ITEM
+			, CONCAT(FILE_PATH, '/', SYSTEM_FILE_NM) AS FILE_PATH_NM
+		FROM
+			TB_FILE
+		WHERE
+			P_GB = 'CONTENTS'
+			AND P_SEQ = #{contentsSeq}
+			AND FILE_ITEM LIKE 'cntntImg%'
+	</select>
+
+	<insert id="insertContentsInfo">
+		INSERT INTO TB_CONTENTS (
+			CONTENTS_NM
+			, CONTENTS_GB
+			, CONTENTS
+			, CUST_ITEM
+			, CUST_CNTNT_1
+			, CUST_CNTNT_2
+			, CUST_CNTNT_3
+			, CUST_CNTNT_4
+			, CUST_CNTNT_5
+			, CUST_JSON_1
+			, CUST_JSON_2
+			, CUST_JSON_3
+			, CUST_JSON_4
+			, CUST_JSON_5
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{contentsNm}
+			, #{contentsGb}
+			, #{contents}
+			, #{custItem}
+			, #{custText1}
+			, #{custText2}
+			, #{custText3}
+			, #{custText4}
+			, #{custText5}
+			, #{custJson1}
+			, #{custJson2}
+			, #{custJson3}
+			, #{custJson4}
+			, #{custJson5}
+			, #{useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+
+		<selectKey keyProperty="contentsSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updateContentsInfo">
+		UPDATE
+			TB_CONTENTS
+		SET
+			CONTENTS_NM    = #{contentsNm}
+			, CONTENTS_GB  = #{contentsGb}
+			, CONTENTS     = #{contents}
+			, CUST_ITEM    = #{custItem}
+			<if test='saveGb != null and saveGb != "enterCntnt"'>
+				, CUST_CNTNT_1 = #{custText1}
+				, CUST_CNTNT_2 = #{custText2}
+				, CUST_CNTNT_3 = #{custText3}
+				, CUST_CNTNT_4 = #{custText4}
+				, CUST_CNTNT_5 = #{custText5}
+				, CUST_JSON_1 = #{custJson1}
+				, CUST_JSON_2 = #{custJson2}
+				, CUST_JSON_3 = #{custJson3}
+				, CUST_JSON_4 = #{custJson4}
+				, CUST_JSON_5 = #{custJson5}
+			</if>
+			, USE_YN            = #{useYn}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			CONTENTS_SEQ = #{contentsSeq}
+	</update>
+
+	<delete id="deleteContentsInfo">
+		DELETE FROM TB_CONTENTS WHERE CONTENTS_SEQ = #{contentsSeq}
+	</delete>
+
+</mapper>

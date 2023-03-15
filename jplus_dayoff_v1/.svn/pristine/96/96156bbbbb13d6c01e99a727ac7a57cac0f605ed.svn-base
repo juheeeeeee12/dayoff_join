@@ -1,0 +1,674 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="system">
+
+	<select id="selectGrpCdListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_COMMON_GRP_CD G
+			<where>
+				<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+					<choose>
+						<when test='schGb == "grpCd"'>
+							AND UPPER(REPLACE(G.GRP_CD, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+						<when test='schGb == "grpCdNm"'>
+							AND UPPER(REPLACE(G.GRP_CD_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+					</choose>
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_COMMON_GRP_CD
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectGrpCdList" parameterType="zvl" resultType="zvl">
+		SELECT
+			G.GRP_CD
+			, G.GRP_CD_NM
+			, G.GRP_CD_DESC
+			, G.USE_YN
+			, G.CREATE_BY
+			, DATE_FORMAT(G.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, G.LAST_UPDATE_BY
+			, DATE_FORMAT(G.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_COMMON_GRP_CD G
+		<where>
+			<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+				<choose>
+					<when test='schGb == "grpCd"'>
+						AND UPPER(REPLACE(G.GRP_CD, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+					<when test='schGb == "grpCdNm"'>
+						AND UPPER(REPLACE(G.GRP_CD_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+				</choose>
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			G.CREATE_DATE DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectGrpCdInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			G.GRP_CD
+			, G.GRP_CD_NM
+			, G.GRP_CD_DESC
+			, G.USE_YN
+			, G.CREATE_BY
+			, DATE_FORMAT(G.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, G.LAST_UPDATE_BY
+			, DATE_FORMAT(G.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_COMMON_GRP_CD G
+		<where>
+			G.GRP_CD = #{grpCd}
+		</where>
+	</select>
+
+	<select id="selectCmnCdList" parameterType="zvl" resultType="zvl">
+		SELECT
+			C.GRP_CD
+			, C.SUB_CD
+			, C.SUB_CD_NM
+			, C.ATTRIBUTE_1
+			, C.ATTRIBUTE_2
+			, C.ATTRIBUTE_3
+			, C.ATTRIBUTE_4
+			, C.ATTRIBUTE_5
+			, C.SORT_ORDER
+			, C.USE_YN
+		FROM
+			TB_COMMON_CD C
+		<where>
+			C.GRP_CD = #{grpCd}
+		</where>
+		ORDER BY
+			C.SORT_ORDER
+	</select>
+
+	<insert id="insertGrpCdInfo">
+		INSERT INTO TB_COMMON_GRP_CD (
+			GRP_CD
+			, GRP_CD_NM
+			, GRP_CD_DESC
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{grpCd}
+			, #{grpCdNm  }
+			, #{grpCdDesc}
+			, #{useYn     }
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+	</insert>
+
+	<update id="updateGrpCdInfo">
+		UPDATE
+			TB_COMMON_GRP_CD
+		SET
+			GRP_CD             = #{grpCd}
+			, GRP_CD_NM        = #{grpCdNm  }
+			, GRP_CD_DESC      = #{grpCdDesc}
+			, USE_YN           = #{useYn    }
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			GRP_CD = #{grpCd}
+	</update>
+
+	<delete id="deleteGrpCdInfo">
+		DELETE FROM TB_COMMON_CD WHERE GRP_CD = #{grpCd};
+		DELETE FROM TB_COMMON_GRP_CD WHERE GRP_CD = #{grpCd}
+	</delete>
+
+	<delete id="deleteCmnCdInfo">
+		DELETE FROM TB_COMMON_CD WHERE GRP_CD = #{grpCd}
+	</delete>
+
+	<insert id="insertCmnCdInfo">
+		INSERT INTO TB_COMMON_CD (
+			GRP_CD
+			, SUB_CD
+			, SUB_CD_NM
+			, ATTRIBUTE_1
+			, ATTRIBUTE_2
+			, ATTRIBUTE_3
+			, ATTRIBUTE_4
+			, ATTRIBUTE_5
+			, SORT_ORDER
+			, USE_YN
+		) VALUE (
+			#{grpCd}
+			, #{subCd    }
+			, #{subCdNm  }
+			, #{attribute1}
+			, #{attribute2}
+			, #{attribute3}
+			, #{attribute4}
+			, #{attribute5}
+			, #{sortOrder }
+			, #{useYn     }
+		)
+	</insert>
+
+	<select id="selectGrpCdCnt" parameterType="zvl" resultType="_int">
+		SELECT
+			COUNT(*)
+		FROM
+			TB_COMMON_GRP_CD
+		WHERE
+			GRP_CD = #{grpCd}
+	</select>
+
+	<select id="selectMenuListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_MENU
+			<where>
+				<if test='schGb != null and schGb == "menuNm" and schVal != null and schVal != ""'>
+					AND UPPER(REPLACE(MENU_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_MENU
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, (
+				CASE
+					WHEN MENU_DEPTH = 1
+						THEN CONCAT(LPAD(MENU_ORDER, 3, '0'), '000000')
+					WHEN MENU_DEPTH = 2
+						THEN CONCAT(
+							(
+								SELECT
+									LPAD(X.MENU_ORDER, 3, '0')
+								FROM
+									TB_MENU X
+								WHERE
+									MENU_DEPTH = 1
+									AND X.MENU_SEQ = M.P_MENU_SEQ
+							)
+							, LPAD(M.MENU_ORDER, 3, '0'), '000'
+						)
+				END
+			) AS P_MENU_ORDER
+			, P_MENU_SEQ
+			, MENU_GB_CD
+			, FN_CODE_NM('MENU_GB_CD', MENU_GB_CD) AS MENU_GB_STR
+			, MENU_URL
+			, BOARD_SEQ
+			, CONTENTS_SEQ
+			, USE_YN
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_MENU M
+		<where>
+			<if test='schGb != null and schGb == "menuNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(MENU_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			P_MENU_ORDER
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectMenuInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			M.MENU_SEQ
+			, M.MENU_NM
+			, M.MENU_DEPTH
+			, M.MENU_ORDER
+			, M.P_MENU_SEQ
+			, M.MENU_GB_CD
+			, M.MENU_URL
+			, M.BOARD_SEQ
+			, M.CONTENTS_SEQ
+			, M.USE_YN
+			, F.FILE_SEQ
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS MENU_BANNER_IMG_FILE_PATH_NM
+			, M.CREATE_BY
+			, DATE_FORMAT(M.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, M.LAST_UPDATE_BY
+			, DATE_FORMAT(M.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_MENU M
+			LEFT JOIN TB_FILE F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'MENU'
+					AND F.FILE_ITEM = 'menuBannerImg'
+					AND F.P_SEQ = M.MENU_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		WHERE
+			M.MENU_SEQ = #{menuSeq}
+	</select>
+
+	<insert id="insertMenuInfo">
+		INSERT INTO TB_MENU (
+			MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, P_MENU_SEQ
+			, MENU_GB_CD
+			, MENU_URL
+			, BOARD_SEQ
+			, CONTENTS_SEQ
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{menuNm}
+			, #{menuDepth}
+			, #{menuOrder}
+			, NULLIF(#{pMenuSeq}, '')
+			, #{menuGbCd}
+			, #{menuUrl}
+			, NULLIF(#{boardSeq}, '')
+			, NULLIF(#{contentsSeq}, '')
+			, #{useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+		<selectKey keyProperty="menuSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updateMenuInfo">
+		UPDATE
+			TB_MENU
+		SET
+			MENU_NM	           = #{menuNm	  }
+			, MENU_DEPTH	   = #{menuDepth  }
+			, MENU_ORDER	   = #{menuOrder  }
+			, P_MENU_SEQ	   = NULLIF(#{pMenuSeq}, '')
+			, MENU_GB_CD	   = #{menuGbCd	  }
+			, MENU_URL	       = #{menuUrl	  }
+			, BOARD_SEQ	       = NULLIF(#{boardSeq}, '')
+			, CONTENTS_SEQ     = NULLIF(#{contentsSeq}, '')
+			, USE_YN           = #{useYn      }
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			MENU_SEQ = #{menuSeq}
+	</update>
+
+	<delete id="deleteMenuInfo">
+		DELETE FROM TB_MENU WHERE MENU_SEQ = #{menuSeq}
+	</delete>
+
+	<select id="selectDepth1MenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+		FROM
+			TB_MENU M
+		WHERE
+			USE_YN = 'Y'
+			AND MENU_DEPTH = 1
+		ORDER BY MENU_ORDER
+	</select>
+
+	<select id="selectDepth2MenuList" parameterType="zvl" resultType="zvl">
+		SELECT * FROM (
+			SELECT
+				M.MENU_SEQ
+				, CONCAT ( P.MENU_NM , ' > ' , M.MENU_NM ) AS MENU_NM
+				, P.MENU_ORDER AS P_MENU_ORDER
+				, M.MENU_ORDER AS MENU_ORDER
+			FROM
+				TB_MENU M
+				LEFT JOIN TB_MENU P ON P.MENU_SEQ = M.P_MENU_SEQ
+			WHERE
+				M.USE_YN = 'Y'
+				AND M.MENU_DEPTH = 2
+		) X
+		ORDER BY
+			P_MENU_ORDER, MENU_ORDER
+	</select>
+
+	<select id="selectContentsList" parameterType="zvl" resultType="zvl">
+		SELECT
+			CONTENTS_SEQ
+			, CONTENTS_NM
+		FROM
+			TB_CONTENTS
+		WHERE
+			USE_YN = 'Y'
+		ORDER BY
+			CONTENTS_NM
+	</select>
+
+	<select id="selectBoardList" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ
+			, BOARD_NM
+		FROM
+			TB_BOARD
+		WHERE
+			USE_YN = 'Y'
+		ORDER BY
+			BOARD_NM
+	</select>
+
+	<select id="selectCmsMenuListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_CMS_MENU
+			<where>
+				<if test='schGb != null and schGb == "menuNm" and schVal != null and schVal != ""'>
+					AND UPPER(REPLACE(MENU_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_CMS_MENU
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectCmsMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, MENU_ICON
+			, (
+				CASE
+					WHEN MENU_DEPTH = 1
+						THEN CONCAT(LPAD(MENU_ORDER, 3, '0'), '000000')
+					WHEN MENU_DEPTH = 2
+						THEN CONCAT(
+							(
+								SELECT
+									LPAD(X.MENU_ORDER, 3, '0')
+								FROM
+									TB_CMS_MENU X
+								WHERE
+									MENU_DEPTH = 1
+									AND X.MENU_SEQ = M.P_MENU_SEQ
+							)
+							, LPAD(M.MENU_ORDER, 3, '0'), '000'
+						)
+				END
+			) AS P_MENU_ORDER
+			, P_MENU_SEQ
+			, MENU_GB_CD
+			, FN_CODE_NM('CMS_MENU_GB_CD', MENU_GB_CD) AS MENU_GB_STR
+			, MENU_URL
+			, USE_YN
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_CMS_MENU M
+		<where>
+			<if test='schGb != null and schGb == "menuNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(MENU_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			P_MENU_ORDER
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectCmsMenuInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, P_MENU_SEQ
+			, MENU_GB_CD
+			, MENU_URL
+			, MENU_ICON
+			, USE_YN
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_CMS_MENU
+		WHERE
+			MENU_SEQ = #{menuSeq}
+	</select>
+
+	<insert id="insertCmsMenuInfo">
+		INSERT INTO TB_CMS_MENU (
+			MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, P_MENU_SEQ
+			, MENU_GB_CD
+			, MENU_URL
+			, MENU_ICON
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{menuNm}
+			, #{menuDepth}
+			, #{menuOrder}
+			, NULLIF(#{pMenuSeq}, '')
+			, #{menuGbCd}
+			, #{menuUrl}
+			, #{menuIcon}
+			, #{useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+	</insert>
+
+	<update id="updateCmsMenuInfo">
+		UPDATE
+			TB_CMS_MENU
+		SET
+			MENU_NM	           = #{menuNm	  }
+			, MENU_DEPTH	   = #{menuDepth  }
+			, MENU_ORDER	   = #{menuOrder  }
+			, P_MENU_SEQ	   = NULLIF(#{pMenuSeq}, '')
+			, MENU_GB_CD	   = #{menuGbCd	  }
+			, MENU_URL	       = #{menuUrl	  }
+			, MENU_ICON	       = #{menuIcon	  }
+			, USE_YN           = #{useYn      }
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			MENU_SEQ = #{menuSeq}
+	</update>
+
+	<delete id="deleteCmsMenuInfo">
+		DELETE FROM TB_CMS_MENU WHERE MENU_SEQ = #{menuSeq}
+	</delete>
+
+	<select id="selectDepth1CmsMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+		FROM
+			TB_CMS_MENU M
+		WHERE
+			USE_YN = 'Y'
+			AND MENU_DEPTH = 1
+		ORDER BY MENU_ORDER
+	</select>
+
+	<select id="selectAuthMenuInfoList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, READ_YN
+			, WRITE_YN
+		FROM
+			TB_AUTH_MENU
+		WHERE
+			AUTH_CD = #{authCd}
+	</select>
+
+	<insert id="insertAuthMenuInfo">
+		INSERT INTO TB_AUTH_MENU (
+			AUTH_CD
+			, MENU_SEQ
+			, READ_YN
+			, WRITE_YN
+		) VALUES
+		<foreach collection="insertMenuAuthList" item="item" separator = "," >
+			(
+				#{authCd}
+				, #{item.menuSeq}
+				, #{item.readYn}
+				, #{item.writeYn}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteAuthMenuInfo">
+		DELETE FROM TB_AUTH_MENU WHERE AUTH_CD = #{authCd}
+	</delete>
+
+	<select id="selectAuthMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, MENU_ORDER
+			, P_MENU_ORDER
+			, P_MENU_SEQ
+			, DEPTH2_CHILD
+			, (
+				CASE
+					WHEN MENU_DEPTH = 1 THEN DEPTH2_CHILD
+					ELSE 0
+				END
+			) + 1 AS ROWSPAN
+			, (
+				CASE
+					WHEN MENU_DEPTH = 1 AND DEPTH2_CHILD <![CDATA[ < ]]> 1 THEN 2
+					ELSE 1
+				END
+			) AS COLSPAN
+		FROM (
+			SELECT
+				M.MENU_SEQ
+				, M.MENU_NM
+				, M.MENU_DEPTH
+				, (
+					CASE
+						WHEN M.MENU_DEPTH = 1 THEN '대메뉴'
+						WHEN M.MENU_DEPTH = 2 THEN '소메뉴'
+					END
+				) AS MENU_DEPTH_STR
+				, M.MENU_ORDER
+				, (
+					CASE
+						WHEN M.MENU_DEPTH = 1
+							THEN CONCAT(LPAD(M.MENU_ORDER, 3, '0'), '000000')
+						WHEN M.MENU_DEPTH = 2
+							THEN CONCAT(
+								(
+									SELECT
+										LPAD(X.MENU_ORDER, 3, '0')
+									FROM
+										TB_CMS_MENU X
+									WHERE
+										X.MENU_DEPTH = 1
+										AND X.MENU_SEQ = M.P_MENU_SEQ
+								)
+								, LPAD(M.MENU_ORDER, 3, '0'), '000'
+							)
+					END
+				) AS P_MENU_ORDER
+				, M.P_MENU_SEQ
+				, (
+					SELECT
+						COUNT(1)
+					FROM
+						TB_CMS_MENU X
+					WHERE
+						X.P_MENU_SEQ = M.MENU_SEQ
+						AND X.MENU_DEPTH = 2
+						AND X.USE_YN = 'Y'
+				) AS DEPTH2_CHILD
+			FROM
+				TB_CMS_MENU M
+			WHERE
+				M.USE_YN = 'Y'
+		) A
+		ORDER BY
+			P_MENU_ORDER
+	</select>
+
+</mapper>

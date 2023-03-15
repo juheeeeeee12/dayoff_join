@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="vacation">
+	<!-- 대시보드 연차 캘린더 연차정보 -->
+	<select id="selectVacationCalender" parameterType="zvl" resultType="zvl">
+		<![CDATA[
+		SELECT
+			V.VACATION_DATE
+			, V.VACATION_GB
+			, FN_CODE_NM('VACATION_GB', V.VACATION_GB) AS VACATION_GB_NM
+			, V.REASON_CD
+			, FN_CODE_NM('VACATION_REASON_CD', V.REASON_CD) AS REASON_CD_NM
+			, V.REASON
+			, M.MEMBER_NM
+		FROM
+			TB_VACATION V
+			LEFT JOIN TB_DAYOFF_MEMBER M ON V.MEMBER_ID = M.MEMBER_ID
+		WHERE
+			M.CP_CODE = #{cmpnyCd}
+			AND V.VACATION_STATUS = '2'
+			AND V.VACATION_DATE >= #{startDate}
+			AND V.VACATION_DATE <= #{endDate}
+		ORDER BY V.VACATION_DATE ASC
+		]]> 
+	</select>
+
+</mapper>

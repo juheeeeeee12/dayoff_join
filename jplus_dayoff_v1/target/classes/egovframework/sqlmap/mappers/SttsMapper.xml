@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="stts">
+
+	<select id="selectAccessorListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_LOGIN_LOG L
+			<where>
+				<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+					<choose>
+						<when test='schGb == "grpCd"'>
+							AND UPPER(REPLACE(L.LOGIN_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+						<when test='schGb == "grpCdNm"'>
+							AND UPPER(REPLACE(L.LOGIN_IP, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+					</choose>
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_LOGIN_LOG
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectAccessorList" parameterType="zvl" resultType="zvl">
+		SELECT
+			L.LOGIN_ID
+			, DATE_FORMAT(L.LOGIN_DATE, '%Y.%m.%d') AS LOGIN_DATE
+			, L.LOGIN_IP
+			, M.MEMBER_NM
+			, M.PHONE_NUM
+			, DATE_FORMAT(M.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+		FROM
+			TB_LOGIN_LOG L
+			LEFT JOIN TB_MEMBER M ON L.LOGIN_ID = M.MEMBER_ID
+		<where>
+			<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+				<choose>
+					<when test='schGb == "grpCd"'>
+						AND UPPER(REPLACE(L.LOGIN_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+					<when test='schGb == "grpCdNm"'>
+						AND UPPER(REPLACE(L.LOGIN_IP, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+		ORDER BY
+			L.LOGIN_DATE DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+</mapper>

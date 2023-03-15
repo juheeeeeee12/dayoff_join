@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="admin">
+
+	<select id="selectAdminLogin" parameterType="zvl" resultType="zvl">
+		SELECT 
+			ADMIN_ID
+			, LOGIN_PWD PASSWORD
+			, ADMIN_NM
+			, JOIN_STATUS_CD
+			, AUTH_CD
+		FROM 
+			TB_ADMIN
+		WHERE
+			ADMIN_ID = #{adminId}
+	</select>
+
+	<select id="selectPostMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ
+			, BOARD_NM
+		FROM
+			TB_BOARD
+		WHERE
+			USE_YN = 'Y'
+		ORDER BY
+			BOARD_SEQ
+	</select>
+	
+	<update id="chgLoginPwd" parameterType="zvl">
+		UPDATE
+			TB_ADMIN
+		SET
+			LOGIN_PWD = #{newPwd}
+		WHERE
+			   ADMIN_ID = #{adminId}
+	</update>
+	
+
+</mapper>

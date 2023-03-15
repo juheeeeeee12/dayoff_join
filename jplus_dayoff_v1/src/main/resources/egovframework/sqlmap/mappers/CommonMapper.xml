@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CommonSql">
+
+	<sql id="pageingTop">
+		<![CDATA[
+			SET @ROWNUM:=0;
+	       	SELECT
+	       		a.*,
+	       		@ROWNUM:=@ROWNUM+1 ROWNUM
+	           FROM  (
+		]]>
+	</sql>
+
+	<sql id="pageingBottom">
+			) a
+		ORDER BY ROWNUM DESC
+		<if test='noPaging == null or noPaging != "Y"'>
+			<choose>
+				<when test="limitNum != null and limitNum != ''">
+					LIMIT ${limitNum}
+				</when>
+				<when test="recordCountPerPage != null and firstIndex != null">
+					LIMIT ${recordCountPerPage} OFFSET ${firstIndex}
+				</when>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectCmnCdList" parameterType="zvl" resultType="zvl">
+		SELECT
+			C.SUB_CD
+			, C.SUB_CD_NM
+		FROM
+			TB_COMMON_GRP_CD G
+			LEFT JOIN TB_COMMON_CD C ON C.GRP_CD = G.GRP_CD
+		WHERE
+			G.USE_YN = 'Y'
+			AND C.USE_YN = 'Y'
+			AND G.GRP_CD = #{grpCd}
+		ORDER BY
+			C.SORT_ORDER
+	</select>
+
+	<select id="selectCmnCdNm" parameterType="zvl" resultType="java.lang.String">
+		SELECT
+			C.SUB_CD_NM
+		FROM
+			TB_COMMON_GRP_CD G
+			LEFT JOIN TB_COMMON_CD C ON C.GRP_CD = G.GRP_CD
+		WHERE
+			G.USE_YN = 'Y'
+			AND C.USE_YN = 'Y'
+			AND G.GRP_CD = #{grpCd}
+			AND C.SUB_CD = #{cmnCd}
+	</select>
+
+	<select id="selectAccountAuthMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, P_MENU_ORDER
+			, MENU_ORDER
+			, MENU_GB_CD
+			, MENU_URL
+			, MENU_ICON
+			, FMT_MENU_ORDER
+			, P_MENU_SEQ
+			, DEPTH2_CHILD
+		FROM (
+			SELECT
+				M.MENU_SEQ
+				, M.MENU_NM
+				, M.MENU_DEPTH
+				, (
+					CASE
+						WHEN M.MENU_DEPTH = 1 THEN M.MENU_ORDER
+						WHEN M.MENU_DEPTH != 1 THEN (
+							SELECT
+								X.MENU_ORDER
+							FROM
+								TB_CMS_MENU X
+							WHERE
+								X.MENU_SEQ = M.P_MENU_SEQ
+						)
+					END
+				) AS P_MENU_ORDER
+				, M.MENU_ORDER
+				, MENU_GB_CD
+				, MENU_URL
+				, MENU_ICON
+				, (
+					CASE
+						WHEN M.MENU_DEPTH = 1
+							THEN CONCAT(LPAD(M.MENU_ORDER, 3, '0'), '000000')
+						WHEN M.MENU_DEPTH = 2
+							THEN CONCAT(
+								(
+									SELECT
+										LPAD(X.MENU_ORDER, 3, '0')
+									FROM
+										TB_CMS_MENU X
+									WHERE
+										X.MENU_DEPTH = 1
+										AND X.MENU_SEQ = M.P_MENU_SEQ
+								)
+								, LPAD(M.MENU_ORDER, 3, '0'), '000'
+							)
+					END
+				) AS FMT_MENU_ORDER
+				, M.P_MENU_SEQ
+				, (
+					SELECT
+						COUNT(menu_seq)
+					FROM
+						TB_CMS_MENU X
+					WHERE
+						X.P_MENU_SEQ = M.MENU_SEQ
+						AND X.MENU_DEPTH = 2
+						AND X.USE_YN = 'Y'
+				) AS DEPTH2_CHILD
+			FROM
+				TB_CMS_MENU M
+			WHERE
+				M.USE_YN = 'Y'
+				AND M.MENU_SEQ IN (
+					SELECT
+						Y.MENU_SEQ
+					FROM
+						TB_AUTH_MENU Y
+					WHERE
+						Y.AUTH_CD = #{sessionAuthCd}
+						AND Y.READ_YN = 'Y'
+				)
+		) T
+		ORDER BY
+			FMT_MENU_ORDER
+	</select>
+
+	<select id="selectAccountRegistAuthList" parameterType="zvl" resultType="String">
+		SELECT
+			GROUP_CONCAT(MENU_SEQ)
+		FROM
+			TB_AUTH_MENU
+		WHERE
+			AUTH_CD = #{sessionAuthCd}
+			AND WRITE_YN = 'Y'
+	</select>
+
+	<select id="selectPostMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ AS MENU_SEQ
+			, BOARD_NM AS MENU_NM
+		FROM
+			TB_BOARD B
+		WHERE
+			B.USE_YN = 'Y'
+		ORDER BY
+			B.BOARD_SEQ
+	</select>
+
+	<select id="selectFrontMenuList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MENU_SEQ
+			, MENU_NM
+			, MENU_DEPTH
+			, P_MENU_ORDER
+			, MENU_ORDER
+			, MENU_GB_CD
+			, MENU_URL
+			, FMT_MENU_ORDER
+			, P_MENU_SEQ
+			, DEPTH2_CHILD
+			, MENU_BANNER_IMG_FILE_PATH_NM
+			, BOARD_SEQ
+			, CONTENTS_SEQ
+		FROM (
+			SELECT
+				M.MENU_SEQ
+				, M.MENU_NM
+				, M.MENU_DEPTH
+				, (
+					CASE
+						WHEN M.MENU_DEPTH = 1 THEN M.MENU_ORDER
+						WHEN M.MENU_DEPTH != 1 THEN (
+							SELECT
+								X.MENU_ORDER
+							FROM
+								TB_MENU X
+							WHERE
+								X.MENU_SEQ = M.P_MENU_SEQ
+						)
+					END
+				) AS P_MENU_ORDER
+				, M.MENU_ORDER
+				, MENU_GB_CD
+				, (
+					CASE MENU_GB_CD
+						WHEN '00' THEN '#'
+						WHEN '01' THEN MENU_URL
+						WHEN '02' THEN '/board/boardList.do'
+						WHEN '03' THEN '/contents/contentsView.do'
+					END
+				) AS MENU_URL
+				, (
+					CASE M.MENU_DEPTH
+						WHEN 1
+							THEN CONCAT(LPAD(M.MENU_ORDER, 3, '0'), '000000')
+						WHEN 2
+							THEN CONCAT(
+								(
+									SELECT
+										LPAD(X.MENU_ORDER, 3, '0')
+									FROM
+										TB_MENU X
+									WHERE
+										X.MENU_DEPTH = 1
+										AND X.MENU_SEQ = M.P_MENU_SEQ
+								)
+								, LPAD(M.MENU_ORDER, 3, '0'), '000'
+							)
+					END
+				) AS FMT_MENU_ORDER
+				, M.P_MENU_SEQ
+				, (
+					SELECT
+						COUNT(menu_seq)
+					FROM
+						TB_MENU X
+					WHERE
+						X.P_MENU_SEQ = M.MENU_SEQ
+						AND X.MENU_DEPTH = 2
+						AND X.USE_YN = 'Y'
+				) AS DEPTH2_CHILD
+				, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS MENU_BANNER_IMG_FILE_PATH_NM
+				, BOARD_SEQ
+				, CONTENTS_SEQ
+			FROM
+				TB_MENU M
+				LEFT JOIN TB_FILE F ON F.FILE_SEQ = (
+					SELECT
+						FILE_SEQ
+					FROM
+						TB_FILE F
+					WHERE
+						F.P_GB = 'MENU'
+						AND F.FILE_ITEM = 'menuBannerImg'
+						AND F.P_SEQ = M.MENU_SEQ
+					ORDER BY
+						F.ATTACH_DATE DESC
+					LIMIT 1
+				)
+			WHERE
+				M.USE_YN = 'Y'
+
+		) T
+		ORDER BY
+			FMT_MENU_ORDER
+	</select>
+
+</mapper>

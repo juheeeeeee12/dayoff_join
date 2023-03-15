@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="file">
+
+	<select id="selectFileList" parameterType="zvl" resultType="zvl">
+		SELECT
+			FILE_SEQ
+			, FILE_NM
+			, SYSTEM_FILE_NM
+			, FILE_PATH
+			, FILE_TYPE
+			, FILE_SIZE
+			, FILE_ITEM
+			, FILE_ORDER
+			, CONCAT(FILE_PATH, '/', SYSTEM_FILE_NM) AS FILE_PATH_NM
+		FROM
+			TB_FILE
+		WHERE
+			P_GB = #{parentGb}
+			AND P_SEQ = #{parentSeq}
+			<if test="fileItem != null and fileItem != ''">
+				AND FILE_ITEM = #{fileItem}
+			</if>
+		ORDER BY
+			FILE_ORDER
+			, FILE_SEQ
+	</select>
+
+	<select id="selectDeleteFileList" parameterType="zvl" resultType="zvl">
+		SELECT
+			FILE_SEQ
+			, SYSTEM_FILE_NM
+		FROM
+			TB_FILE
+		WHERE
+			FILE_SEQ IN
+			<foreach collection="deleteFileSeqList" item="item" open="(" close=")" separator = "," >
+				#{item}
+			</foreach>
+	</select>
+
+	<select id="selectFileInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			FILE_SEQ
+			, FILE_NM
+			, SYSTEM_FILE_NM
+			, FILE_PATH
+			, FILE_TYPE
+			, FILE_SIZE
+			, FILE_ITEM
+		FROM
+			TB_FILE
+		WHERE
+			FILE_SEQ = #{fileSeq}
+	</select>
+
+	<insert id="insertFileInfo">
+		INSERT INTO TB_FILE (
+			P_GB
+			, P_SEQ
+			, FILE_NM
+			, SYSTEM_FILE_NM
+			, FILE_PATH
+			, FILE_TYPE
+			, FILE_SIZE
+			, FILE_ITEM
+			, FILE_ORDER
+			, ATTACH_DATE
+		) VALUES (
+			#{parentGb}
+			, #{parentSeq}
+			, #{fileNm}
+			, #{systemFileNm}
+			, CONCAT('/upload/', #{filePath})
+			, #{fileType}
+			, #{fileSize}
+			, #{fileItem}
+			<choose>
+				<when test="fileOrder != null and fileOrder != ''">
+					, #{fileOrder}
+				</when>
+				<otherwise>
+					, (
+						SELECT
+							(IFNULL(MAX(F.FILE_ORDER),0)+1)
+						FROM
+							TB_FILE F
+						WHERE
+							F.P_GB = #{parentGb}
+							AND F.P_SEQ = #{parentSeq}
+							AND F.FILE_ITEM = #{fileItem}
+					)
+				</otherwise>
+			</choose>
+			, NOW()
+		)
+	</insert>
+
+	<update id="updateFileInfo" parameterType="zvl">
+		UPDATE
+			TB_FILE
+		SET
+			FILE_ORDER = #{fileOrder}
+		WHERE
+			FILE_SEQ = #{fileSeq}
+	</update>
+
+	<delete id="deleteFileInfo">
+		DELETE FROM TB_FILE WHERE FILE_SEQ = #{fileSeq}
+	</delete>
+
+	<update id="reOrderFile">
+		UPDATE
+			TB_FILE
+		SET
+			FILE_ORDER = #{chgOrder}
+		WHERE
+			FILE_SEQ = #{reOrdSeq}
+	</update>
+
+</mapper>

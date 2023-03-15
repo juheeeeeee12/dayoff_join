@@ -1,0 +1,377 @@
+
+.header_login {
+    position: absolute;
+    top: -40px;
+    right: 0;
+}
+.header_login li a {
+	border: 0;
+	color: #fff;
+	padding: 0 5px;
+}
+.header_login li {
+	display: inline-block;
+}
+
+.header_login li::after {
+    display: inline-block;
+    content: '';
+    width: 1px;
+    height: 12px;
+    position: relative;
+    right: 0;
+    background-color: #fff;
+}
+.header_login li:last-child::after {
+	display: none;
+}
+.header.-active .header_login li a {
+	color: #000;
+}
+.header.-active .header_login li::after {
+    background-color: #000;
+}
+.sub {
+    height: auto;
+    transition: all .6s;
+}
+
+a {
+    color: #000;
+}
+a:hover {
+	color: #1f3c80;
+}
+.gnb__item {
+    padding: 0 30px;
+}
+.header.-active:after {height: 150px; top: 135px;}
+.subVisual__title {
+    margin-top: 0;
+    color: #fff;
+    position: relative;
+}
+.subVisual__bg {
+	z-index: 0;
+    background-position: center;
+}
+.subVisual__item {
+	height: 320px;
+}
+.subContent__tit {
+    margin-bottom: 50px;
+}
+
+.centerContent {
+	overflow: hidden;
+}
+.centerContent.contentsPage img {
+	width: 100%;
+}
+.centerContent.contentsPage * {
+    line-height: 1.5rem !important;
+}
+.footer__inner {
+    margin-top: 100px;
+}
+
+legend {
+    overflow: hidden !important;
+    display: inline-block !important;
+    *display: inline !important;
+    zoom: 1 !important;
+    text-indent: -9999px !important;
+    white-space: nowrap !important;
+    line-height: 0 !important;
+}
+@charset "UTF-8";
+
+.bbsWrap {
+  width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 105px;
+}
+
+.bbsList {
+
+  margin-top: 20px;
+  border-top:3px solid #0f3f6f;
+
+  &__item {
+    width: 100%;
+    height: 82px;
+    line-height: 82px;
+    border-bottom: 1px solid #e5e5e5;
+    display: table;
+    &:hover {
+      background: #f6f6f8;
+    }
+    &.-notice {
+      border-bottom:1px solid #0f3f6f;
+
+      .bbsList__num {
+        font-size: 20px;
+        font-weight: bold;
+        color: #175ca2;
+      }
+      .bbsList__tit {
+        color: #175ca2;
+      }
+      .bbsList__date,.bbsList__count {
+        color: #717171;
+      }
+    }
+  }
+  &__num,&__tit, &__file, &__date, &__count,&__com,&__submit {
+    display: table-cell;
+    color: #717171;
+    vertical-align: middle;
+  }
+  &__num,&__tit {
+    font-size: 16px;
+  }
+  &__file, &__date, &__count {
+    font-size: 14px;
+  }
+  &__num {
+    text-align: center;
+    width: 102px;
+    position: relative;
+    &:after {
+      position: absolute;
+      right: 0;
+      top:27px;
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: 30px;
+      background: #e5e5e5;
+    }
+  }
+  &__tit {
+    margin-left: 50px;
+    width: 680px;
+    display: inline-block;
+    color: $cFont;
+    @include font("medium");
+    @include ellipsis;
+  }
+  &__file {
+    width: 122px;
+    position: relative;
+    padding-left: 30px;
+    &.-noFile {
+      opacity: 0;
+    }
+    &:before {
+      content: "";
+      position: absolute;
+      top:30px;
+      left: 0;
+      @extend .iconDownload;
+    }
+  }
+  &__date {
+    width: 166px
+  }
+  &__count {
+    width: 113px
+  }
+  &__com {
+    width: 160px;
+    text-align: center;
+    position: relative;
+    font-size: 16px;
+    color: #175ca2;
+    &:after {
+      position: absolute;
+      right: 0;
+      top:27px;
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: 30px;
+      background: #e5e5e5;
+    }
+
+  }
+  &__submit,&__date {
+    width: 160px;
+    font-size: 14px;
+  }
+
+  &.-public {
+    margin-top: 40px;
+    .bbsList__tit {
+      width: 500px;
+    }
+  }
+}
+
+.bbsView {
+  &__header {
+    border-top: 3px solid $cBlue;
+    padding-top: 30px;
+    .num {
+      font-size: 28px;
+      @include font('bold');
+      color: $cBlue;
+      display: inline-block;
+      position: relative;
+      width: 110px;
+      text-align: center;
+      margin-right: 32px;
+      &:after {
+        content: "";
+        width: 1px;
+        height: 32px;
+        display: inline-block;
+        position: absolute;
+        right: 0;
+        background-color: #175ca2;
+
+      }
+    }
+    .tit {
+      font-size: 28px;
+      color: $cBlue;
+      display: inline-block;
+
+    }
+    .info {
+      border-top: 1px solid $cBrdGray;
+      border-bottom: 1px solid $cBrdGray;
+      margin-top: 33px;
+      padding: 20px 0;
+      position: relative;
+      @include font('light');
+      font-size: 14px;
+      letter-spacing: 0.4px;
+
+      &__txt {
+        position: absolute;
+        left: 0;
+
+      }
+      .date {
+        display: inline-block;
+        width: 130px;
+        margin-right: 40px;
+      }
+      .count {
+        display: inline-block;
+        width: 130px;
+
+      }
+      .file {
+        display: inline-block;
+        margin-left: 270px;
+        &__item {
+          margin: 0 20px 10px 25px;
+          display: inline-block;
+          border-bottom: 1px solid $cBrdGray;
+          position: relative;
+          &:before {
+            content: "";
+            position: absolute;
+            left: -30px;
+            top:-2px;
+            @extend .iconDownloadOn;
+
+          }
+        }
+
+      }
+
+    }
+
+  }
+  &__content {
+    padding: 40px 0;
+    min-height: 220px;
+  }
+  &__footer {
+    font-size: 0;
+    border-top:1px solid $cBrdGray;
+    position: relative;
+    @include clearFix();
+    .prevBtn {
+      float: left;
+    }
+    .nextBtn {
+      float: right;
+    }
+    .prevBtn,.nextBtn {
+      width: 600px;
+      margin-top: -1px;
+      text-align: center;
+      font-size: 16px;
+      border-top:1px solid $cBrdGray;
+      padding-top: 50px;
+      color: #aaa;
+      transition: all .5s;
+
+      i {
+        font-size: 20px;
+        display: block;
+        @include font("bold");
+        color: #aaa;
+        margin-bottom: 18px;
+      }
+      &:hover {
+        border-top:1px solid #175ca2;
+        color: #175ca2;
+
+
+
+        i {
+          color: #175ca2;
+        }
+
+      }
+    }
+    .listBtn {
+      display: inline-block;
+      position: absolute;
+      left: 50%;
+      top:50%;
+      margin-left: -35px;
+      margin-top: -10px;
+      width: 70px;
+      height: 70px;
+      //background:  #4a4e52 center center no-repeat;
+      background-color:  #4a4e52;
+      transition: all .5s;
+      &:before {
+        content: "";
+        background: url("/images/sprite/iconbbsListBtn.png");
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        left: 50%;
+        top:50%;
+        margin-top: -10px;
+        margin-left: -10px;
+
+      }
+
+      &:hover {
+        box-shadow:70px 0 0 0 #175ca2 inset;
+
+      }
+
+    }
+  }
+}
+.pagination {
+    display: block;
+}
+
+
+#previewList li.media img {
+	width: 15%;
+}
+.pagination>li.on>a {
+    background-color: #1f3c80;
+    color: #fff;
+}

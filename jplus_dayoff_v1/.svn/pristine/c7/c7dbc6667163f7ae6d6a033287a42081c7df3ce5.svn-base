@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member">
+
+	<select id="selectMemberLogin" parameterType="zvl" resultType="zvl">
+		SELECT
+			MEMBER_ID
+			, LOGIN_PWD PASSWORD
+			, MEMBER_NM
+			, JOIN_STATUS_CD
+		FROM
+			TB_MEMBER
+		WHERE
+			MEMBER_ID = #{loginId}
+	</select>
+	
+	<insert id="insertLoginLog">
+		INSERT INTO TB_LOGIN_LOG (
+			LOGIN_ID
+			, LOGIN_GB
+			, LOGIN_DATE
+			, LOGIN_IP
+		) VALUES (
+			#{loginId}
+			, #{loginGb}
+			, NOW()
+			, #{loginIp}
+		)
+	</insert>
+
+	<select id="selectMemberListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_MEMBER M
+			<where>
+				DELETE_YN = 'N'
+				<if test='schGb != null and schVal != null and schVal != ""'>
+					<choose>
+						<when test='schGb == "schMemberId"'>
+							AND UPPER(REPLACE(MEMBER_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+						<when test='schGb == "schMemberNm"'>
+							AND UPPER(REPLACE(MEMBER_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+					</choose>
+				</if>
+			</where>
+			) AS SCH_COUNT
+			, (
+				SELECT
+					COUNT(*)
+				FROM
+					TB_MEMBER
+					<where>DELETE_YN = 'N'</where>
+			) AS TOTAL_CNT
+	</select>
+
+	<select id="selectMemberList" parameterType="zvl" resultType="zvl">
+		SELECT
+			MEMBER_ID
+			, LOGIN_PWD
+			, MEMBER_NM
+			, PHONE_NUM
+			, EMAIL
+			, JOIN_STATUS_CD
+			, FN_CODE_NM('JOIN_STATUS_CD', JOIN_STATUS_CD) AS JOIN_STATUS_NM
+			, PWD_CHG_DATE
+			, LAST_LOGIN_DATE
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y.%m.%d') AS FMT_CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_MEMBER M
+		<where>
+			DELETE_YN = 'N'
+			<if test='schGb != null and schVal != null and schVal != ""'>
+				<choose>
+					<when test='schGb == "schMemberId"'>
+						AND UPPER(REPLACE(MEMBER_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+					<when test='schGb == "schMemberNm"'>
+						AND UPPER(REPLACE(MEMBER_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+		ORDER BY
+			CREATE_DATE DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectMemberInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			MEMBER_ID
+			, LOGIN_PWD
+			, MEMBER_NM
+			, PHONE_NUM
+			, ADDRESS
+			, EMAIL
+			, JOIN_STATUS_CD
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+			, DATE_FORMAT(PWD_CHG_DATE, '%Y-%m-%d %H:%i:%s') AS PWD_CHG_DATE
+			, DATE_FORMAT(LAST_LOGIN_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_LOGIN_DATE
+		FROM
+			TB_MEMBER M
+		<where>
+			MEMBER_ID = #{memberId}
+		</where>
+	</select>
+
+	<select id="selectMemberIdCnt" parameterType="zvl" resultType="_int">
+		SELECT
+			COUNT(*)
+		FROM
+			TB_MEMBER
+		WHERE
+			MEMBER_ID = #{memberId}
+	</select>
+
+	<insert id="insertMemberInfo">
+		INSERT INTO TB_MEMBER (
+			MEMBER_ID
+			, LOGIN_PWD
+			, MEMBER_NM
+			, PHONE_NUM
+			, ADDRESS
+			, EMAIL
+			, JOIN_STATUS_CD
+			, PWD_CHG_DATE
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+			, DELETE_YN
+		) VALUES (
+			#{memberId}
+			, #{loginPwd}
+			, #{memberNm}
+			, #{phoneNum}
+			, #{address}
+			, #{email}
+			, #{joinStatusCd}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+			, 'N'
+		)
+	</insert>
+
+	<update id="updateMemberInfo">
+		UPDATE
+			TB_MEMBER
+		SET
+			MEMBER_NM      = #{memberNm}
+			, PHONE_NUM      = #{phoneNum}
+			, ADDRESS        = #{address}
+			, EMAIL	         = #{email}
+			, JOIN_STATUS_CD = #{joinStatusCd}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+			<if test="loginPwd != null and loginPwd != ''">
+				, LOGIN_PWD      = #{loginPwd}
+				, PWD_CHG_DATE = NOW()
+			</if>
+		WHERE
+			MEMBER_ID = #{memberId}
+	</update>
+
+	<update id="deleteMemberInfo">
+		UPDATE
+			TB_MEMBER
+		SET
+			DELETE_YN = 'Y'
+			, DELETE_BY = #{sessionId}
+			, DELETE_DATE = NOW()
+			, MEMBER_ID = CONCAT('del', DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'), '_' , MEMBER_ID)
+		WHERE
+			MEMBER_ID = #{memberId}
+	</update>
+
+	<select id="selectAdminListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_ADMIN
+			<where>
+				<if test='schGb != null and schVal != null and schVal != ""'>
+					<choose>
+						<when test='schGb == "schAdminId"'>
+							AND UPPER(REPLACE(ADMIN_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+						<when test='schGb == "schAdminNm"'>
+							AND UPPER(REPLACE(ADMIN_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+					</choose>
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_ADMIN
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectAdminList" parameterType="zvl" resultType="zvl">
+		SELECT
+			ADMIN_ID
+			, LOGIN_PWD
+			, ADMIN_NM
+			, JOIN_STATUS_CD
+			, FN_CODE_NM('JOIN_STATUS_CD', JOIN_STATUS_CD) AS JOIN_STATUS_NM
+			, FN_CODE_NM('AUTH_CD', AUTH_CD) AS AUTH_CD_NM
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y.%m.%d') AS FMT_CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_ADMIN
+		<where>
+			<if test='schGb != null and schVal != null and schVal != ""'>
+				<choose>
+					<when test='schGb == "schAdminId"'>
+						AND UPPER(REPLACE(ADMIN_ID, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+					<when test='schGb == "schAdminNm"'>
+						AND UPPER(REPLACE(ADMIN_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+		ORDER BY
+			CREATE_DATE DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectAdminInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			ADMIN_ID
+			, LOGIN_PWD
+			, ADMIN_NM
+			, JOIN_STATUS_CD
+			, AUTH_CD
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_ADMIN
+		<where>
+			ADMIN_ID = #{adminId}
+		</where>
+	</select>
+
+	<select id="selectAdminIdCnt" parameterType="zvl" resultType="_int">
+		SELECT
+			COUNT(*)
+		FROM
+			TB_ADMIN
+		WHERE
+			ADMIN_ID = #{adminId}
+	</select>
+
+	<insert id="insertAdminInfo">
+		INSERT INTO TB_ADMIN (
+			ADMIN_ID
+			, LOGIN_PWD
+			, ADMIN_NM
+			, JOIN_STATUS_CD
+			, AUTH_CD
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{adminId}
+			, #{loginPwd}
+			, #{adminNm}
+			, #{joinStatusCd}
+			, #{authCd}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+	</insert>
+
+	<update id="updateAdminInfo">
+		UPDATE
+			TB_ADMIN
+		SET
+			ADMIN_NM  = #{adminNm}
+			, JOIN_STATUS_CD = #{joinStatusCd}
+			, AUTH_CD = #{authCd}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+			<if test="loginPwd != null and loginPwd != ''">
+				, LOGIN_PWD      = #{loginPwd}
+			</if>
+		WHERE
+			ADMIN_ID = #{adminId}
+	</update>
+
+	<delete id="deleteAdminInfo">
+		DELETE FROM TB_ADMIN WHERE ADMIN_ID = #{adminId}
+	</delete>
+
+	<select id="selectInqryListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_INQRY
+			<where>
+				<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+					<choose>
+						<when test="schGb == 'schInqryTitle'">
+							AND UPPER(REPLACE(INQRY_TITLE, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+						<when test="schGb == 'schCreateBy'">
+							AND UPPER(REPLACE(CREATE_BY, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+						</when>
+					</choose>
+				</if>
+				<if test="schAnswerYn != null and schAnswerYn != ''">
+					AND ANSWER_YN = #{schAnswerYn}
+				</if>
+				<if test="schCategory != null and schCategory != ''">
+					AND INQRY_CATEGORY = #{schCategory}
+				</if>
+			</where>
+			) AS SCH_COUNT
+			, (
+				SELECT
+					COUNT(*)
+				FROM
+					TB_INQRY
+			) AS TOTAL_CNT
+	</select>
+
+	<select id="selectInqryList" parameterType="zvl" resultType="zvl">
+		SELECT
+			INQRY_SEQ
+			, INQRY_CATEGORY
+			, FN_CODE_NM('INQRY_CATEGORY', INQRY_CATEGORY) AS INQRY_CATEGORY_NM
+			, INQRY_TITLE
+			, INQRY_CNTNT
+			, ANSWER_YN
+			, ANSWER_TITLE
+			, ANSWER_CNTNT
+			, ANSWER_BY
+			, ANSWER_DATE
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_INQRY
+		<where>
+			<if test="schGb != null and schGb != '' and schVal != null and schVal != ''">
+				<choose>
+					<when test="schGb == 'schInqryTitle'">
+						AND UPPER(REPLACE(INQRY_TITLE, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+					<when test="schGb == 'schCreateBy'">
+						AND UPPER(REPLACE(CREATE_BY, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+					</when>
+				</choose>
+			</if>
+			<if test="schAnswerYn != null and schAnswerYn != ''">
+				AND ANSWER_YN = #{schAnswerYn}
+			</if>
+			<if test="schCategory != null and schCategory != ''">
+				AND INQRY_CATEGORY = #{schCategory}
+			</if>
+		</where>
+		ORDER BY
+			INQRY_SEQ DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectInqryInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			INQRY_SEQ
+			, INQRY_CATEGORY
+			, FN_CODE_NM('INQRY_CATEGORY', INQRY_CATEGORY) AS INQRY_CATEGORY_NM
+			, INQRY_TITLE
+			, INQRY_CNTNT
+			, ANSWER_YN
+			, ANSWER_TITLE
+			, ANSWER_CNTNT
+			, ANSWER_BY
+			, DATE_FORMAT(ANSWER_DATE, '%Y-%m-%d %H:%i:%s') AS ANSWER_DATE
+			, CREATE_BY
+			, DATE_FORMAT(CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, LAST_UPDATE_BY
+			, DATE_FORMAT(LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_INQRY
+		<where>
+			INQRY_SEQ = #{inqrySeq}
+		</where>
+	</select>
+
+	<insert id="insertInqryInfo">
+		INSERT INTO TB_INQRY (
+			INQRY_TITLE
+			, INQRY_CNTNT
+			, INQRY_CATEGORY
+			, ANSWER_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{inqryTitle}
+			, #{inqryCntnt}
+			, #{inqryCategory}
+			, 'N'
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+
+		<selectKey keyProperty="inqrySeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+
+	</insert>
+
+	<update id="updateInqryInfo">
+		UPDATE
+			TB_INQRY
+		SET
+			INQRY_TITLE = #{inqryTitle}
+			, INQRY_CNTNT = #{inqryCntnt}
+			, INQRY_CATEGORY = #{inqryCategory}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			INQRY_SEQ = #{inqrySeq}
+	</update>
+
+	<update id="updateAnswerInfo">
+		UPDATE
+			TB_INQRY
+		SET
+			ANSWER_YN    = 'Y'
+			, ANSWER_TITLE = #{answerTitle}
+			, ANSWER_CNTNT = #{answerCntnt}
+			, ANSWER_BY    = #{sessionId}
+			, ANSWER_DATE  = NOW()
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			INQRY_SEQ = #{inqrySeq}
+	</update>
+
+	<delete id="deleteInqryInfo">
+		DELETE FROM TB_INQRY WHERE INQRY_SEQ = #{inqrySeq}
+	</delete>
+
+</mapper>

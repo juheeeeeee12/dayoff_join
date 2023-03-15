@@ -1,0 +1,44 @@
+    <article>
+            <div class="body_container">
+                <div class="about_contents">
+                    <div class="ab_section_01">
+                        <div class="ab_banner">
+                            <img src="http://newjplus.com/images/intro/about_banner.jpg" />
+                            <p class="ab_hlight_01">혁신을 붙이다? <br><span class="ab_hlight_02">혁신을 붙이다!</span></p>
+                        </div>
+                        <div class="section_title_area_01">
+                            <div class="section_title">
+                                <h2><span></span>ABOUT</h2>
+                            </div>
+                          <!--  <div class="section_title_right">
+                                <ul>
+                                    <li><a href="http://newjplus.com/index.html">HOME</a><span>/</span></li>
+                                    <li><a href="about.html">ABOUT</a><span>/</span></li>
+                                    <li style="font-weight: bold;">CEO 인사말</li>
+                                </ul>
+                            </div>-->
+                        </div>
+                        <div class="ab_section_01_wrap">
+                            <div class="ab_section_content">
+                                <h2 class="none">CEO 인사말</h2>
+                                <div class="ab_s01_content">
+                                    <p class="ceo_img"></p>
+                                    <div class="ceo_cnt">
+                                        <h2 class="ab_s01_title">CEO 인사말 </h2>
+                                        <p>많은 사람들이 유행어처럼 혁신을 말합니다. 하지만, 혁신의 진정한 의미를 이해하고,<br>
+                                            이루어 내는 곳은 많지 않습니다. 일시적인 개선이나 단기적인 성과는 진정한 의미의 혁신이 아닙니다.<br>
+                                            진정한 혁신은 새롭게 창조된 가치가 지속적으로 듀지되고 성장하는 것입니다.<br>
+                                            고객사의 Needs에 맞춰 단단하게 안착되어 끊임없이 발전하는 새로운 가치 !<br>
+                                            IT전문가들이 모여있는 (주)제이플러스의 목표입니다.<br>
+                                            더불어 성장하는 가치 창조, 고객사와 함께 하겠습니다.</p>
+                                            <p class="ceo-name">제이 플러스 대표이사 정기정</p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </article>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Log4j Configuration
+
+ * author robin
+ * version $Revision: 1.2 $
+ * create 2007. 4. 4.
+ * since 1.0
+ * last $Date: 2007/12/09 08:14:09 $
+
+ * Reference : http://wiki.apache.org/logging-log4j/Log4jXmlFormat
+-->
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%-5p %d %c %x - %m%n"/>
+		</layout>
+	</appender>
+
+	<root>
+		<priority value="info" />
+		<appender-ref ref="STDOUT" />
+		<!--<appender-ref ref="dailyrolling" />-->
+	</root>
+
+</log4j:configuration>

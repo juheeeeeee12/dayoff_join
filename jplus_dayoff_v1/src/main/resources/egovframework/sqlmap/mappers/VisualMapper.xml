@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="visual">
+
+	<select id="selectMainBannerList" parameterType="zvl" resultType="zvl">
+		SELECT
+			B.BANNER_SEQ
+			, B.BANNER_TITLE
+			, B.BANNER_SUB_TITLE
+			, B.BANNER_CNTNT
+			, B.BANNER_URL
+			, B.SHOW_ORDER
+			, B.SHOW_YN
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS BANNER_IMG_FILE_PATH_NM
+			, B.CREATE_BY
+			, DATE_FORMAT(B.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, B.LAST_UPDATE_BY
+			, DATE_FORMAT(B.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_BANNER B
+			LEFT JOIN tb_file F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'BANNER'
+					AND F.FILE_ITEM = 'bannerImg'
+					AND F.P_SEQ = B.BANNER_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		<where>
+			1=1
+			<if test="schShowYn != null and schShowYn != ''">
+				AND B.SHOW_YN = #{schShowYn}
+			</if>
+		</where>
+		ORDER BY
+			(CASE WHEN B.SHOW_YN = 'Y' THEN 1 ELSE 2 END)
+			, B.SHOW_ORDER
+			, B.BANNER_SEQ DESC
+	</select>
+
+	<select id="selectMainBannerInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			B.BANNER_SEQ
+			, B.BANNER_TITLE
+			, B.BANNER_SUB_TITLE
+			, B.BANNER_CNTNT
+			, B.BANNER_URL
+			, B.SHOW_ORDER
+			, B.SHOW_YN
+			, F.FILE_SEQ
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS BANNER_IMG_FILE_PATH_NM
+			, B.CREATE_BY
+			, DATE_FORMAT(B.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, B.LAST_UPDATE_BY
+			, DATE_FORMAT(B.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_BANNER B
+			LEFT JOIN TB_FILE F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'BANNER'
+					AND F.FILE_ITEM = 'bannerImg'
+					AND F.P_SEQ = B.BANNER_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		WHERE
+			BANNER_SEQ = #{bannerSeq}
+	</select>
+
+	<insert id="insertMainBannerInfo">
+		INSERT INTO TB_BANNER (
+			BANNER_TITLE
+			, BANNER_SUB_TITLE
+			, BANNER_CNTNT
+			, BANNER_URL
+			, SHOW_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{bannerTitle}
+			, #{bannerSubTitle}
+			, #{bannerCntnt}
+			, #{bannerUrl}
+			, #{showYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+		<selectKey keyProperty="bannerSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updateMainBannerInfo">
+		UPDATE
+			TB_BANNER
+		SET
+			BANNER_TITLE       = #{bannerTitle}
+			, BANNER_SUB_TITLE = #{bannerSubTitle}
+			, BANNER_CNTNT     = #{bannerCntnt}
+			, BANNER_URL       = #{bannerUrl}
+			, SHOW_YN          = #{showYn}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			BANNER_SEQ = #{bannerSeq}
+	</update>
+
+	<delete id="deleteMainBannerInfo">
+		DELETE FROM TB_BANNER WHERE BANNER_SEQ = #{bannerSeq}
+	</delete>
+
+	<update id="reOrderBannerOrder">
+		UPDATE TB_BANNER
+		<set>
+			SHOW_ORDER = NULLIF(#{chgOrder}, NULL)
+		</set>
+		<where>
+			BANNER_SEQ = #{reOrdId}
+		</where>
+	</update>
+
+	<select id="selectPopupList" parameterType="zvl" resultType="zvl">
+		SELECT
+			POPUP_SEQ
+			, POPUP_TITLE
+			, POPUP_CNTNT
+			, POPUP_URL
+			, POPUP_GB_CD
+			, FN_CODE_NM('POPUP_GB_CD', POPUP_GB_CD) AS POPUP_GB_CD_NM
+			, SHOW_ORDER
+			, SHOW_YN
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS POPUP_IMG_FILE_PATH_NM
+			, P.CREATE_BY
+			, DATE_FORMAT(P.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, P.LAST_UPDATE_BY
+			, DATE_FORMAT(P.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_POPUP P
+			LEFT JOIN tb_file F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'POPUP'
+					AND F.FILE_ITEM = 'popupImg'
+					AND F.P_SEQ = P.POPUP_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		<where>
+			1=1
+			<if test="schShowYn != null and schShowYn != ''">
+				AND P.SHOW_YN = #{schShowYn}
+			</if>
+		</where>
+		ORDER BY
+			(CASE WHEN P.SHOW_YN = 'Y' THEN 1 ELSE 2 END)
+			, P.SHOW_ORDER
+			, P.POPUP_SEQ DESC
+	</select>
+
+	<select id="selectPopupInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			POPUP_SEQ
+			, POPUP_TITLE
+			, POPUP_CNTNT
+			, POPUP_URL
+			, POPUP_GB_CD
+			, SHOW_ORDER
+			, SHOW_YN
+			, CONCAT(F.FILE_PATH, '/', F.SYSTEM_FILE_NM) AS POPUP_IMG_FILE_PATH_NM
+			, P.CREATE_BY
+			, DATE_FORMAT(P.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, P.LAST_UPDATE_BY
+			, DATE_FORMAT(P.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_POPUP P
+			LEFT JOIN tb_file F ON F.FILE_SEQ = (
+				SELECT
+					FILE_SEQ
+				FROM
+					TB_FILE F
+				WHERE
+					F.P_GB = 'POPUP'
+					AND F.FILE_ITEM = 'popupImg'
+					AND F.P_SEQ = P.POPUP_SEQ
+				ORDER BY
+					F.ATTACH_DATE DESC
+				LIMIT 1
+			)
+		WHERE
+			POPUP_SEQ = #{popupSeq}
+	</select>
+
+	<insert id="insertPopupInfo">
+		INSERT INTO TB_POPUP (
+			POPUP_TITLE
+			, POPUP_CNTNT
+			, POPUP_URL
+			, POPUP_GB_CD
+			, SHOW_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{popupTitle}
+			, #{popupCntnt}
+			, #{popupUrl}
+			, #{popupGbCd}
+			, #{showYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+		<selectKey keyProperty="popupSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updatePopupInfo">
+		UPDATE
+			TB_POPUP
+		SET
+			POPUP_TITLE        = #{popupTitle}
+			, POPUP_CNTNT      = #{popupCntnt}
+			, POPUP_URL        = #{popupUrl}
+			, POPUP_GB_CD      = #{popupGbCd}
+			, SHOW_YN          = #{showYn}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			POPUP_SEQ = #{popupSeq}
+	</update>
+
+	<delete id="deletePopupInfo">
+		DELETE FROM TB_POPUP WHERE POPUP_SEQ = #{popupSeq}
+	</delete>
+
+	<update id="reOrderPopupOrder">
+		UPDATE TB_POPUP
+		<set>
+			SHOW_ORDER = NULLIF(#{chgOrder}, NULL)
+		</set>
+		<where>
+			POPUP_SEQ = #{reOrdId}
+		</where>
+	</update>
+
+</mapper>

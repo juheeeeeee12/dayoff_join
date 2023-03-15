@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+
+	<select id="selectBoardListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_BOARD B
+			<where>
+				<if test='schGb != null and schGb == "boardNm" and schVal != null and schVal != ""'>
+					AND UPPER(REPLACE(BOARD_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+				</if>
+				<if test="schUseYn != null and schUseYn != ''">
+					AND USE_YN = #{schUseYn}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_BOARD
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectBoardList" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ
+			, BOARD_NM
+			, BOARD_TYPE_CD
+			, FN_CODE_NM('BOARD_TYPE_CD', B.BOARD_TYPE_CD) AS BOARD_TYPE_NM
+			, CATE_USE_YN
+			, REPLY_YN
+			, COMMENT_YN
+			, ATTACH_YN
+			, KEYWORD_YN
+			, USER_WRITABLE_YN
+			, RCMND_YN
+			, FIX_YN
+			, REPORT_YN
+			, IMG_SLIDE_YN
+			, MIN_IMG_CNT
+			, MAX_IMG_CNT
+			, USE_YN
+			, B.CREATE_BY
+			, DATE_FORMAT(B.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, B.LAST_UPDATE_BY
+			, DATE_FORMAT(B.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_BOARD B
+		<where>
+			<if test='schGb != null and schGb == "boardNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(B.BOARD_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			B.BOARD_SEQ DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectBoardInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ
+			, BOARD_NM
+			, BOARD_TYPE_CD
+			, FN_CODE_NM('BOARD_TYPE_CD', B.BOARD_TYPE_CD) AS BOARD_TYPE_NM
+			, CATE_USE_YN
+			, REPLY_YN
+			, COMMENT_YN
+			, ATTACH_YN
+			, KEYWORD_YN
+			, USER_WRITABLE_YN
+			, RCMND_YN
+			, FIX_YN
+			, REPORT_YN
+			, IMG_SLIDE_YN
+			, MIN_IMG_CNT
+			, MAX_IMG_CNT
+			, USE_YN
+			, B.CREATE_BY
+			, DATE_FORMAT(B.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, B.LAST_UPDATE_BY
+			, DATE_FORMAT(B.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_BOARD B
+		<where>
+			B.BOARD_SEQ = #{boardSeq}
+		</where>
+	</select>
+
+	<insert id="insertBoardInfo">
+		INSERT INTO TB_BOARD (
+			BOARD_NM
+			, BOARD_TYPE_CD
+			, CATE_USE_YN
+			, REPLY_YN
+			, COMMENT_YN
+			, ATTACH_YN
+			, KEYWORD_YN
+			, USER_WRITABLE_YN
+			, RCMND_YN
+			, FIX_YN
+			, REPORT_YN
+			, IMG_SLIDE_YN
+			, MIN_IMG_CNT
+			, MAX_IMG_CNT
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{boardNm}
+			, #{boardTypeCd}
+			, #{cateUseYn}
+			, #{replyYn}
+			, #{commentYn}
+			, #{attachYn}
+			, #{keywordYn}
+			, #{userWritableYn}
+			, #{rcmndYn}
+			, #{fixYn}
+			, #{reportYn}
+			, #{imgSlideYn}
+			, NULLIF(#{minImgCnt}, '')
+			, NULLIF(#{maxImgCnt}, '')
+			, #{useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+
+		<selectKey keyProperty="boardSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+
+	</insert>
+
+	<update id="updateBoardInfo">
+		UPDATE
+			TB_BOARD
+		SET
+			BOARD_NM      = #{boardNm}
+			, BOARD_TYPE_CD = #{boardTypeCd}
+			, CATE_USE_YN   = #{cateUseYn}
+			, REPLY_YN	    = #{replyYn}
+			, COMMENT_YN	= #{commentYn}
+			, ATTACH_YN	    = #{attachYn}
+			, KEYWORD_YN	= #{keywordYn}
+			, USER_WRITABLE_YN	= #{userWritableYn}
+			, RCMND_YN      = #{rcmndYn}
+			, FIX_YN        = #{fixYn}
+			, REPORT_YN     = #{reportYn}
+			, IMG_SLIDE_YN	= #{imgSlideYn}
+			, MIN_IMG_CNT   = NULLIF(#{minImgCnt}, '')
+			, MAX_IMG_CNT   = NULLIF(#{maxImgCnt}, '')
+			, USE_YN        = #{useYn}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			BOARD_SEQ = #{boardSeq}
+	</update>
+
+	<delete id="deleteBoardInfo">
+		DELETE FROM TB_BOARD WHERE BOARD_SEQ = #{boardSeq}
+	</delete>
+
+	<select id="selectBoardCategoryList" parameterType="zvl" resultType="zvl">
+		SELECT
+			BOARD_SEQ
+			, CATEGORY_SEQ
+			, SORT_ORDER
+			, CATEGORY_NM
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		FROM
+			TB_BOARD_CATEGORY
+		WHERE
+			BOARD_SEQ = #{boardSeq}
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		ORDER BY
+			SORT_ORDER
+	</select>
+
+	<insert id="insertBoardCategoryInfo">
+		<foreach collection="insertList" item="item" open="" close="" separator = ";" >
+		INSERT INTO TB_BOARD_CATEGORY(
+			BOARD_SEQ
+			, CATEGORY_SEQ
+			, SORT_ORDER
+			, CATEGORY_NM
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES
+		(
+			#{boardSeq}
+			<choose>
+				<when test="item.categorySeq != null and item.categorySeq != 0">
+				, #{item.categorySeq}
+				</when>
+				<otherwise>
+				, (SELECT ifnull(MAX(CATEGORY_SEQ) + 1, 1) AS category_seq FROM tb_board_category c WHERE BOARD_SEQ = #{boardSeq})
+				</otherwise>
+			</choose>
+			, #{item.sortOrder}
+			, #{item.categoryNm}
+			, #{item.useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+		ON DUPLICATE KEY UPDATE
+			SORT_ORDER = VALUE(SORT_ORDER)
+			, CATEGORY_NM = VALUE(CATEGORY_NM)
+			, USE_YN = VALUE(USE_YN)
+			, LAST_UPDATE_BY = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		</foreach>
+	</insert>
+
+	<delete id="deleteBoardCategoryAll">
+		DELETE FROM TB_BOARD_CATEGORY WHERE BOARD_SEQ = #{boardSeq}
+	</delete>
+
+	<delete id="deleteBoardCategoryInfo">
+		<foreach collection="deleteList" item="item" open="" close="" separator = ";" >
+			DELETE FROM TB_BOARD_CATEGORY WHERE BOARD_SEQ = #{boardSeq} AND CATEGORY_SEQ = #{item.categorySeq}
+		</foreach>
+	</delete>
+
+	<select id="selectCategoryListCnt" parameterType="zvl" resultType="_int">
+		SELECT
+			COUNT(*)
+		FROM
+			TB_CATEGORY C
+		<where>
+			<if test='schGb != null and schGb == "categoryNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(CATEGORY_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+	</select>
+
+	<select id="selectCategoryList" parameterType="zvl" resultType="zvl">
+		SELECT
+			CATEGORY_SEQ
+			, CATEGORY_NM
+			, USE_YN
+			, C.CREATE_BY
+			, DATE_FORMAT(C.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, C.LAST_UPDATE_BY
+			, DATE_FORMAT(C.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_CATEGORY C
+		<where>
+			<if test='schGb != null and schGb == "categoryNm" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(CATEGORY_NM, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND USE_YN = #{schUseYn}
+			</if>
+		</where>
+		ORDER BY
+			C.CATEGORY_SEQ DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectCategoryInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			CATEGORY_SEQ
+			, CATEGORY_NM
+			, USE_YN
+			, C.CREATE_BY
+			, DATE_FORMAT(C.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, C.LAST_UPDATE_BY
+			, DATE_FORMAT(C.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_CATEGORY C
+		<where>
+			C.CATEGORY_SEQ = #{categorySeq}
+		</where>
+	</select>
+
+	<insert id="insertCategoryInfo">
+		INSERT INTO TB_CATEGORY (
+			CATEGORY_NM
+			, USE_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+		) VALUES (
+			#{categoryNm}
+			, #{useYn}
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+		)
+	</insert>
+
+	<update id="updateCategoryInfo">
+		UPDATE
+			TB_CATEGORY
+		SET
+			CATEGORY_NM        = #{categoryNm}
+			, USE_YN           = #{useYn}
+			, LAST_UPDATE_BY   = #{sessionId}
+			, LAST_UPDATE_DATE = NOW()
+		WHERE
+			CATEGORY_SEQ = #{categorySeq}
+	</update>
+
+	<delete id="deleteCategoryInfo">
+		DELETE FROM TB_CATEGORY WHERE CATEGORY_SEQ = #{categorySeq}
+	</delete>
+
+	<select id="selectPostListCnt" parameterType="zvl" resultType="zvl">
+		SELECT (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_POST P
+			<where>
+				P.BOARD_SEQ = #{boardSeq}
+				AND DELETE_YN != 'Y'
+				<if test='schGb != null and schGb == "postTitle" and schVal != null and schVal != ""'>
+					AND UPPER(REPLACE(POST_TITLE, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+				</if>
+				<if test="schShowYn != null and schShowYn != ''">
+					AND SHOW_YN = #{schShowYn}
+				</if>
+				<if test="schCategory != null and schCategory != ''">
+					AND POST_CATEGORY_SEQ = #{schCategory}
+				</if>
+			</where>
+		) AS SCH_COUNT
+		, (
+			SELECT
+				COUNT(*)
+			FROM
+				TB_POST
+		) AS TOTAL_CNT
+	</select>
+
+	<select id="selectPostList" parameterType="zvl" resultType="zvl">
+		SELECT
+			POST_SEQ
+			, BOARD_SEQ
+			, POST_CATEGORY_SEQ
+			, (
+				SELECT
+					CATEGORY_NM
+				FROM
+					TB_BOARD_CATEGORY C
+				WHERE
+					C.BOARD_SEQ = P.BOARD_SEQ
+					AND C.CATEGORY_SEQ = P.POST_CATEGORY_SEQ
+			) AS POST_CATEGORY_NM
+			, POST_TITLE
+			, POST_CNTNT
+			, VIEW_CNT
+			, REPLY_YN
+			, P_POST_SEQ
+			, MAIN_SHOW_ORDER
+			, KEYWORDS
+			, P.SHOW_YN
+			, P.CREATE_BY
+			, DATE_FORMAT(P.CREATE_DATE, '%Y.%m.%d') AS CREATE_DATE
+			, P.LAST_UPDATE_BY
+			, DATE_FORMAT(P.LAST_UPDATE_DATE, '%Y.%m.%d') AS LAST_UPDATE_DATE
+		FROM
+			TB_POST P
+		<where>
+			P.BOARD_SEQ = #{boardSeq}
+			AND DELETE_YN != 'Y'
+			<if test='schGb != null and schGb == "postTitle" and schVal != null and schVal != ""'>
+				AND UPPER(REPLACE(POST_TITLE, ' ', '')) LIKE CONCAT('%', UPPER(REPLACE(#{schVal}, ' ', '')), '%')
+			</if>
+			<if test="schShowYn != null and schShowYn != ''">
+				AND SHOW_YN = #{schShowYn}
+			</if>
+			<if test="schCategory != null and schCategory != ''">
+				AND POST_CATEGORY_SEQ = #{schCategory}
+			</if>
+		</where>
+		ORDER BY
+			POST_SEQ DESC
+		LIMIT
+			#{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectPostInfo" parameterType="zvl" resultType="zvl">
+		SELECT
+			POST_SEQ
+			, BOARD_SEQ
+			, POST_CATEGORY_SEQ
+			, POST_TITLE
+			, POST_CNTNT
+			, VIEW_CNT
+			, REPLY_YN
+			, P_POST_SEQ
+			, MAIN_SHOW_ORDER
+			, KEYWORDS
+			, F.FILE_SEQ
+			, F.FILE_PATH_NM
+			, P.SHOW_YN
+			, P.CREATE_BY
+			, DATE_FORMAT(P.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+			, P.LAST_UPDATE_BY
+			, DATE_FORMAT(P.LAST_UPDATE_DATE, '%Y-%m-%d %H:%i:%s') AS LAST_UPDATE_DATE
+		FROM
+			TB_POST P
+			LEFT OUTER JOIN (
+				SELECT
+					P_SEQ
+					, FILE_SEQ
+					, CONCAT(FILE_PATH, '/', SYSTEM_FILE_NM) AS FILE_PATH_NM
+				FROM
+					TB_FILE
+				WHERE
+					P_GB = 'POST'
+					AND FILE_ITEM = 'thumbImg'
+				ORDER BY
+					FILE_SEQ DESC
+				LIMIT 1
+			) F ON F.P_SEQ = P.POST_SEQ
+		<where>
+			P.POST_SEQ = #{postSeq}
+		</where>
+	</select>
+
+	<insert id="insertPostInfo">
+		INSERT INTO TB_POST (
+			BOARD_SEQ
+			, POST_CATEGORY_SEQ
+			, POST_TITLE
+			, POST_CNTNT
+			, VIEW_CNT
+			, REPLY_YN
+			, P_POST_SEQ
+			, MAIN_SHOW_ORDER
+			, KEYWORDS
+			, SHOW_YN
+			, CREATE_BY
+			, CREATE_DATE
+			, LAST_UPDATE_BY
+			, LAST_UPDATE_DATE
+			, DELETE_YN
+		) VALUES (
+			#{boardSeq	   }
+			, NULLIF(#{postCategorySeq}, '')
+			, #{postTitle	   }
+			, #{postCntnt	   }
+			, 0
+			, #{replyYn	       }
+			, NULLIF(#{pPostSeq}, '')
+			, NULLIF(#{mainShowOrder}, '')
+			, #{keywords	   }
+			, #{showYn	       }
+			, #{sessionId}
+			, NOW()
+			, #{sessionId}
+			, NOW()
+			, 'N'
+		)
+
+		<selectKey keyProperty="postSeq" resultType="int" order="AFTER">
+       		SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updatePostInfo">
+		UPDATE
+			TB_POST
+		SET
+			BOARD_SEQ	         = #{boardSeq	    }
+			, POST_CATEGORY_SEQ  = NULLIF(#{postCategorySeq}, '')
+			, POST_TITLE	     = #{postTitle	    }
+			, POST_CNTNT	     = #{postCntnt	    }
+			, REPLY_YN	         = #{replyYn	    }
+			, P_POST_SEQ         =  NULLIF(#{pPostSeq}, '')
+			, MAIN_SHOW_ORDER    =  NULLIF(#{mainShowOrder}, '')
+			, KEYWORDS	         = #{keywords	    }
+			, SHOW_YN	         = #{showYn	        }
+			, LAST_UPDATE_BY     = #{sessionId}
+			, LAST_UPDATE_DATE   = NOW()
+		WHERE
+			POST_SEQ = #{postSeq}
+	</update>
+
+	<update id="deletePostInfo">
+		UPDATE
+			TB_POST
+		SET
+			DELETE_YN = 'Y'
+			, DELETE_BY = #{sessionId}
+			, DELETE_DATE = NOW()
+		WHERE
+			POST_SEQ = #{postSeq}
+	</update>
+
+</mapper>

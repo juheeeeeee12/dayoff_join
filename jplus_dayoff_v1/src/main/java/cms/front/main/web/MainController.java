@@ -1,0 +1,351 @@
+package cms.front.main.web;
+
+import java.io.PrintWriter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import cms.admin.member.service.MemberService;
+import cms.cmn.model.ZValue;
+import cms.cmn.service.CmnService;
+import cms.cmn.util.BaseUtil;
+import cms.cmn.util.WebFactoryUtil;
+import cms.front.main.service.MainService;
+import egovframework.com.cmm.util.EgovResourceCloseHelper;
+
+@Controller
+public class MainController {
+
+	protected Logger logger = LogManager.getLogger(this.getClass());
+
+	@Autowired
+	private CmnService cmnService;
+
+	@Autowired
+	private MemberService memberService;
+
+	@Autowired
+	private MainService mainService;
+
+	/**
+	 * 메인
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/main.do")
+	public ModelAndView frontMain(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try {
+			zvl.put("schShowYn", "Y");
+			modelAndView.addObject("mainBannerList", cmnService.retrieveCommonList("visual.selectMainBannerList", zvl));
+			modelAndView.addObject("popupList", cmnService.retrieveCommonList("visual.selectPopupList", zvl));
+		} catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/ceojoin");
+		return modelAndView;
+	}
+	
+	/**
+	 * 로그인
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/login.do")
+	public ModelAndView frontLogin(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try {
+
+		} catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/login");
+		return modelAndView;
+	}
+
+	/**
+	 * 회원가입 페이지
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/join.do")
+	public ModelAndView frontJoin(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try {
+
+		} catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/ceoJoin");
+		return modelAndView;
+	}
+
+	
+	/**
+	 * 이메일 중복확인
+	 * @param response
+	 * @param request
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping("/emailCheck.do")
+	public ModelAndView emailCheck(HttpServletResponse response, HttpServletRequest request) throws Exception{
+
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		int result = mainService.emailCheck(zvl);
+
+		System.out.println(result);
+		if(result >= 1) {
+			modelAndView.addObject("result","FAIL");
+		}else {
+			modelAndView.addObject("result","SUCC");
+		}
+	
+
+		modelAndView.setViewName("jsonView");
+		return modelAndView;
+	}
+
+	/**
+	 * 회원가입
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/applyJoin.do")
+	public ModelAndView applyJoin(HttpServletResponse response, HttpServletRequest request){
+
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+		
+		//회사코드생성
+		String cpCode = RandomStringUtils.randomNumeric(6);
+		zvl.put("cpCode",cpCode);
+		
+		try{
+			
+			mainService.saveMemberInfo(zvl);
+			modelAndView.addObject("retcode", "SUCC");
+		}catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+			modelAndView.addObject("message", (BaseUtil.isEmpty(zvl.getString("outMessage")) ? "문제가 발생했습니다. 관리자에게 문의하세요." : zvl.getString("outMessage")));
+			modelAndView.addObject("errCode", e.getMessage());
+			modelAndView.addObject("retcode", "FAIL");
+		}
+
+		modelAndView.setViewName("jsonView");
+		return modelAndView;
+	}
+
+	/**
+	 * 회원가입 완료 페이지
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/joinResult.do")
+	public ModelAndView frontJoinResult(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try {
+
+		} catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/joinResult");
+		return modelAndView;
+	}
+
+	/**
+	 * 로그인
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/loginCheck.do")
+	public ModelAndView loginCheck(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		HttpSession session = request.getSession();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try{
+			modelAndView.addObject("success", false);
+			ZValue member = cmnService.retrieveCommonDetail("member.selectMemberLogin", zvl);
+			BCryptPasswordEncoder bp = new BCryptPasswordEncoder();
+
+			if(member != null ) {
+				Boolean pwChk = bp.matches(zvl.getString("loginPwd"), (String) member.get("PASSWORD"));
+				if(!pwChk) {
+					zvl.put("outMessage", "아이디 또는 비밀번호를 잘못 입력하셨습니다.");
+					throw new Exception((String) zvl.get("outMessage"));
+				}
+				if(pwChk) {
+					if(!member.getString("JOIN_STATUS_CD").equals("02")) {
+						if(member.getString("JOIN_STATUS_CD").equals("01")) zvl.put("outMessage", "승인 신청중인 계정입니다.");
+						else if(member.getString("JOIN_STATUS_CD").equals("03")) zvl.put("outMessage", "사용중지된 계정입니다.");
+						throw new Exception((String) zvl.get("outMessage"));
+					}
+					modelAndView.addObject("success", true);
+					memberService.insertLoginLog(member.getString("MEMBER_ID"), "FRONT", zvl);
+					session.setAttribute("loginId", member.get("MEMBER_ID"));
+					session.setAttribute("loginNm", member.get("MEMBER_NM"));
+				}
+			} else {
+				zvl.put("outMessage", "아이디 또는 비밀번호를 잘못 입력하셨습니다.");
+				throw new Exception((String) zvl.get("outMessage"));
+			}
+		}catch (Exception e) {
+			logger.error("error ::: ", e);
+			modelAndView.addObject("message", (BaseUtil.isEmpty(zvl.getString("outMessage")) ? "문제가 발생했습니다. 고객센터에 문의하세요." : zvl.getString("outMessage")));
+		}
+		modelAndView.setViewName("jsonView");
+		return modelAndView;
+	}
+
+	/**
+	 * 프론트 메뉴 리스트
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getMenuList.do")
+	public ModelAndView getMenuList(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try{
+			modelAndView.addObject("retcode", "SUCC");
+			modelAndView.addObject("menuList", cmnService.retrieveCommonList("CommonSql.selectFrontMenuList", zvl));
+		}catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+			modelAndView.addObject("message", "문제가 발생했습니다. 고객센터에 문의하세요.");
+			modelAndView.addObject("retcode", "FAIL");
+		}
+
+		modelAndView.setViewName("jsonView");
+		return modelAndView;
+	}
+
+	/**
+	 * 컨텐츠 페이지
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/contents/contentsView.do")
+	public ModelAndView contentsView(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try{
+			ZValue result = cmnService.retrieveCommonDetail("contents.selectContentsInfo", zvl);
+			if(result == null || !result.getString("USE_YN").equals("Y") ) {
+				modelAndView.addObject("message", "접근 불가능한 메뉴입니다.");
+				modelAndView.setViewName( "exception/alertPage" );
+				return modelAndView;
+			}
+			modelAndView.addObject("result", result);
+		}catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+			modelAndView.addObject("message", "문제가 발생했습니다. 고객센터에 문의하세요.");
+			modelAndView.addObject("retcode", "FAIL");
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/contentsView");
+		return modelAndView;
+	}
+
+	/**
+	 * 게시판 리스트 페이지
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/board/boardList.do")
+	public ModelAndView frontBoardList(HttpServletResponse response, HttpServletRequest request){
+		ModelAndView modelAndView = new ModelAndView();
+		ZValue zvl = WebFactoryUtil.getAttributesInit(request);
+
+		try{
+//			ZValue result = cmnService.retrieveCommonDetail("contents.selectContentsInfo", zvl);
+//			if(result == null || !result.getString("USE_YN").equals("Y") ) {
+//				modelAndView.addObject("message", "접근 불가능한 메뉴입니다.");
+//				modelAndView.setViewName( "exception/alertPage" );
+//				return modelAndView;
+//			}
+//			modelAndView.addObject("result", result);
+
+			ZValue boardInfo = cmnService.retrieveCommonDetail("board.selectBoardInfo", zvl);
+			if(boardInfo == null || !boardInfo.getString("USE_YN").equals("Y") ) {
+				modelAndView.addObject("message", "접근 불가능한 메뉴입니다.");
+				modelAndView.setViewName( "exception/alertPage" );
+				return modelAndView;
+			}
+			if(boardInfo != null && boardInfo.getString("CATE_USE_YN").equals("Y")) {
+				zvl.put("schUseYn", "Y");
+				modelAndView.addObject("boardCategoryList", cmnService.retrieveCommonList("board.selectBoardCategoryList", zvl));
+			}
+
+			if (!zvl.containsKey("pageIndex") || BaseUtil.isEmpty(zvl.get("pageIndex"))) zvl.put("pageIndex", 1);
+
+			PaginationInfo paginationInfo = new PaginationInfo();
+			paginationInfo.setCurrentPageNo(BaseUtil.parseIntDft1(zvl.get("pageIndex")));
+			paginationInfo.setRecordCountPerPage(10);
+			paginationInfo.setPageSize(10);
+
+			zvl.put("firstIndex", paginationInfo.getFirstRecordIndex());
+			zvl.put("lastIndex", paginationInfo.getLastRecordIndex());
+			zvl.put("recordCountPerPage", paginationInfo.getRecordCountPerPage());
+			zvl.put("schShowYn", "Y");
+
+			ZValue listCntInfo = cmnService.retrieveCommonDetail("board.selectPostListCnt", zvl);
+			paginationInfo.setTotalRecordCount(listCntInfo.getInt("SCH_COUNT"));
+			modelAndView.addObject("listCntInfo", listCntInfo);
+			modelAndView.addObject("resultList", cmnService.retrieveCommonList("board.selectPostList", zvl));
+			modelAndView.addObject("paginationInfo", paginationInfo);
+			modelAndView.addObject("boardInfo", boardInfo);
+
+		}catch (Exception e) {
+			logger.error("ERROR(" + request.getRequestURI() + ") : " + e);
+			modelAndView.addObject("message", "문제가 발생했습니다. 고객센터에 문의하세요.");
+			modelAndView.addObject("retcode", "FAIL");
+		}
+
+		modelAndView.addAllObjects(zvl);
+		modelAndView.setViewName("front/boardList");
+		return modelAndView;
+	}
+
+}
